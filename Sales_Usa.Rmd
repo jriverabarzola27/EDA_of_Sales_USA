@@ -1,0 +1,513 @@
+---
+title: "Sales_Usa"
+author: "Delsy"
+date: '2022-08-20'
+output: rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+  ifelse(require(MASS)==T, "Cargado", install.packages("MASS"))
+  ifelse(require(viridis)==T, "Cargado", install.packages("viridis"))
+  ifelse(require(tables)==T, "Cargado", install.packages("tables"))
+  ifelse(require(Hmisc)==T, "Cargado", install.packages("Hmisc"))
+  ifelse(require(flextable)==T, "Cargado", install.packages("flextable"))
+  ifelse(require(dplyr)==T, "Cargado", install.packages("dplyr"))
+  ifelse(require(RcmdrMisc)==T, "Cargado", install.packages("RcmdrMisc"))
+  ifelse(require(webr)==T, "Cargado", install.packages("webr"))
+  ifelse(require(knitr)==T, "Cargado", install.packages("knitr"))
+  ifelse(require(kableExtra)==T, "Cargado", install.packages("kableExtra"))
+  ifelse(require(dataMaid)==T, "Cargado", install.packages("dataMaid"))
+  ifelse(require(tidylog)==T, "Cargado", install.packages("tidylog"))
+  ifelse(require(stargazer)==T, "Cargado", install.packages("stargazer"))
+  
+  ifelse(require(summarytools)==T, "Cargado", install.packages("summarytools"))
+  ifelse(require(metan)==T, "Cargado", install.packages("metan"))
+  ifelse(require(DT)==T, "Cargado", install.packages("DT"))
+  ifelse(require(expss)==T, "Cargado", install.packages("expss"))
+  #install.packages("descr")
+  #install.packages("summarytools")
+  #install.packages("rriskDistributions")
+  
+  
+
+  library(MASS)
+  library(viridis)
+  library(tables)
+  library(Hmisc)
+  library(kableExtra)
+  library(knitr,stargazer)
+  library(dataMaid,tidylog)
+  library(reporttools)
+  library(dplyr, warn.conflicts = FALSE)
+  library(reporttools,summarytools)
+  library(metan,dplyr , warn.conflicts = FALSE)
+  library(flextable, DT)
+  library(dplyr)
+  library(RcmdrMisc)
+  library(webr,expss)
+  library(descr)
+  library(summarytools)
+  library(fitdistrplus)
+  library(survival)
+  library(npsurv)
+  library(lsei)
+  library(readr)
+  library(rriskDistributions)
+  library(xts)
+  library(zoo)
+  library(tidyverse)
+  library(lubridate)
+  library(tseries)
+  library(astsa)
+  library(forecast)
+  library(foreign)
+  library(timsac)
+  library(vars)
+  library(mFilter)
+  library(dynlm)
+  library(MASS)
+  library(ggfortify)
+```
+
+
+```{r include=FALSE}
+library(readxl)
+getwd()
+usaStore <- read.csv("D:/TFE/sales.csv", header = TRUE, sep = ";")
+str(usaStore)
+```
+
+
+
+```{r}
+
+usaStore$cant_ordened <- as.numeric(usaStore$cant_ordened)
+usaStore$age<- as.numeric(usaStore$age)
+```
+
+```{r}
+str(usaStore)
+```
+
+
+```{r}
+
+sapply(usaStore, function(x) sum(is.na(x))) #Conteo de todas las columnas que tienen na
+
+```
+
+
+```{r}
+usaStore <- usaStore[!is.na(usaStore$cant_ordened),]
+
+```
+
+
+
+
+<img 
+src=https://i.ibb.co/mhybZQ2/Indias-Store2.png>
+
+##  Caso de Análisis
+
+*El conjunto de datos de Ventas en línea de Sales USA. trata sobre las ventas de diferentes productos, varias mercancías y productos electrónicos en diferentes estados. Dado que una gran parte de las personas que tienen acceso a Internet se están cambiando a las compras en línea, los grandes minoristas están buscando activamente formas de aumentar sus ganancias. El análisis de ventas es una de esas técnicas clave utilizadas por los grandes minoristas para aumentar las ventas al comprender el comportamiento y los patrones de compra de los clientes. El análisis de la cesta de la compra examina colecciones de artículos para encontrar relaciones entre los artículos que van juntos dentro del contexto empresarial.
+*
+
+> Nuestra tarea es analizar los datos de ventas e identificar áreas débiles y oportunidades para que SALES USA impulse el crecimiento del negocio.
+
+### Definición de variables
+Se cuenta con una tabla de datos de 35 variables
+
+Table: Definición de variables
+
+ **N°**| **Variable** |  **Tipo de variable ** | 
+-------| -------------| ----------------------|
+*1* |*order_id*| *Cualitativa Nominal*|
+*2* |*order_date* | *Cuantitativa discreta*|
+*3* |*status* | *Cualitativa ordinal*|
+*4* |*item_id* | *Calitativa Nominal*|
+*5* |*sku* | *Cualitativa Nominal*|
+*6* |*cant_ordened* | *Cuantitativa Discreta*|
+*7* |*price* | *Cuantitativa Continua*|
+*8* |*value* | *Cuantitativa Continua*|
+*9* |*discount_amount* | *Cuantitativa Continua*|
+*10* |*total* | *Cuantitativa Continua*|
+*11* |*category* | *Cualitativa Nominal*|
+*12* |*payment_method* | *Cualitativa Nominal*|
+*13* |*bi_st* | *Cualitativa Nominal*|
+*14* |*cust_id* | *Cualitativa Nominal*|
+*15* |*year* | *Cuantitativa discreta*|
+*16* |*month* | *Cuantitativa discreta*|
+*17* |*ref_num* | *Cuantitativa discreta*|
+*18* |*Name Prefix* | *Cualitativa ordinal*|
+*19* |*First Name* | *Cualitativa nominal*|
+*20* |*Middle Initial* | **|
+*21* |*Last Name* | *Cualitativa nominal*|
+*22* |*Gender* | *Cualitativa nominal/binaria*|
+*23* |*age* | *Cuantitativa discreta*|
+*24* |*full_name* | *Cualitativa nominal*|
+*25* |*E Mail* | *Cualitativa nominal*|
+*26* |*Customer Since* | *Cuantitativa discreta*|
+*27* |*SSN* | *Cualitativa nominal*|
+*28* |*Phone No.* | *Cualitativa nominal*|
+*29* |*Place Name* | *Cualitativa nominal*|
+*30* |*County* | *Cualitativa nominal*|
+*31* |*City* | *Cualitativa nominal*|
+*32* |*State* | *Cualitativa nominal*|
+*33* |*Zip* | *Cualitativa nominal*|
+*34* |*Region* | *Cualitativa nominal*|
+*35* |*User Name* | *Cualitativa nominal*|
+
+
+## **Primera Parte**
+
+**Para el planteamiento del caso USA Store se analizará las ventas generadas ** 
+
+**Preguntas comerciales**
+
+* ¿Qué región/estados es la más rentable?
+
+* ¿Qué categorías generan más pérdidas en las ventas?
+
+* ¿Cuales son los Status por ventas?
+
+* ¿Que tipo de pago es el mas usado?
+
+* ¿Que genero tiene mayores ventas?
+
+
+ *Análisis exploratorio de datos*
+
+## Análisis de Ventas
+
+### 1.- Ventas Por Región
+
+```{r}
+totalVentas<-aggregate(x=usaStore$total,by=list(usaStore$Region),FUN=sum)
+datatable(totalVentas[order(totalVentas$x,decreasing = TRUE),])
+```
+
+*Como podemos observar la región en donde se realizaron mayores ventas fue "South" y donde se realizaron menores ventas fue "Northeast"*
+
+```{r }
+ventasRegion <- c(0.38,0.27,0.18,0.17)
+etiquetas1 <- c("South", "Midwest", "West", "Northeast")
+pct1 <- round(ventasRegion/sum(ventasRegion)*100)
+etiquetas1 <- paste(ventasRegion, pct1)
+etiquetas1 <- paste(ventasRegion,"%",sep="")
+
+```
+
+```{r }
+
+pie(ventasRegion,labels = ventasRegion,
+    col=rainbow(length(etiquetas1)),
+    main="Ventas por Region")
+
+legend("topright", c("South", "Midwest", "West", "Northeast"), cex = 0.9,
+       fill = rainbow(length(ventasRegion)))
+```
+
+
+### 2.- Ventas Por  Categoría de producto
+
+Para poder entender mejor cuales son las categorias de productos donde se tienen mayores ganancias recurriremos a un análisis a través de diagramas de barras
+
+
+```{r}
+ 
+
+#Listar todas las categorias que tiene nuestra data
+unique(usaStore$category) #En total tenemos 16 categorias incluido uno en vacio que debe ser sustituido por N.A.
+categoria <- usaStore$category
+ventas <- usaStore$total
+ventas_categoria <- data.frame(categoria,ventas)
+diagramaCat_Venta <-  aggregate(x=ventas_categoria$ventas, by=list(ventas_categoria$categoria),FUN = sum)
+datatable(diagramaCat_Venta[order(diagramaCat_Venta$x,decreasing = TRUE),])
+diagramaCat_Venta
+
+```
+
+```{r}
+diag_cp<- diagramaCat_Venta[order(diagramaCat_Venta$x,decreasing = TRUE),]
+barplot(diag_cp$x, main ="Ventas por Categoria de producto", names.arg=c("Mobiles & Tablets","Appliances","Entertainment","Others","Computing","Women's Fashion","Men's Fashion","Beauty & Grooming","Superstore","Home & Living","Health & Sports","Kids & Baby","Soghaat","School & Education","Books"," "), col=rainbow(11),space =1,las=3, xlab="",  ylab="ventas",cex.names=0.5,cey.names=0.5)
+```
+
+
+Por el diagrama podemos saber que las categorías de productos "Mobiles & Tablets", "Appliances" y "Entertainment" son lo que tienen mayores ventas. Asimismo, no debemos descartar que no se tiene la categoria "otros" y quen se situa como la 4 categoria mas vendida, lo cual no podemos determinar a que productos hace referencia.
+
+### 3.- Ventas Por Status
+
+```{r}
+Ventas_Status <- usaStore$status
+
+```
+
+```{r}
+Ventas_Status1 <-  aggregate(x=ventas_categoria$ventas, by=list(Ventas_Status),FUN = sum)
+datatable(Ventas_Status1[order(Ventas_Status1$x,decreasing = TRUE),])
+
+```
+
+
+```{r}
+diag_Status<- Ventas_Status1[order(Ventas_Status1$x,decreasing = TRUE),]
+barplot(diag_Status$x, main ="Ventas por Status", names.arg=c("canceled","complete","received","order_refunded","refund","cod","paid","closed","holded","pending","processing","payment_review","pending_paypal"," "), col=rainbow(11),space =1,las=3, xlab="",  ylab="ventas",cex.names=0.5,cey.names=0.5)
+```
+
+*En el diagrama de Ventas por Status podemos constatar que el status canceled y complete contienen las mayores ventas.*
+
+### 4.- Ventas Por Metodo de Pago
+
+```{r}
+tipoPago<-aggregate(x=usaStore$total,by=list(usaStore$payment_method), FUN=sum)
+datatable(tipoPago[order(tipoPago$x,decreasing = TRUE),])
+```
+
+```{r}
+diag_MedPag<- tipoPago[order(tipoPago$x,decreasing = TRUE),]
+barplot(diag_MedPag$x, main ="Ventas por Medio de Pago", names.arg=c("Easypay","easypay_voucher","bankalfalah","Payaxis","cod","jazzvoucher","Easypay_MA","jazzwallet","customercredit","apg","mcblite","cashatdoorstep","financesettlement"," "), col=rainbow(11),space =1,las=3, xlab="",  ylab="ventas",cex.names=0.5,cey.names=0.5)
+```
+
+### 5.- Ventas Por Genero
+```{r}
+totalgen <-usaStore$Gender
+
+```
+
+
+```{r}
+Venta_genero<-aggregate(x=usaStore$total,by=list(usaStore$Gender), FUN=sum)
+datatable(Venta_genero[order(Venta_genero$x,decreasing = TRUE),])
+```
+
+```{r }
+ventasGenero <- c(0.51,0.49)
+etiquetasG <- c("Femenino", "Masculino")
+pctg <- round(ventasGenero/sum(ventasGenero)*100)
+etiquetasG <- paste(ventasGenero, pctg)
+etiquetasG <- paste(ventasGenero,"%",sep="")
+
+```
+
+```{r }
+
+pie(ventasGenero,labels = ventasGenero,
+    col=rainbow(length(etiquetasG)),
+    main="Ventas por Genero")
+
+legend("topright", c("Femenino", "Masculino"), cex = 0.9,
+       fill = rainbow(length(ventasGenero)))
+```
+##Segunda parte de analisís
+Realizaremos los siguientes analisis con las 3 categorias con mayores ventas :
+
+ -
+ - 
+ -
+
+
+```{r}
+
+mobiletablets<- usaStore%>%group_by(total)%>%filter(category %in% c("Mobiles & Tablets"))
+
+mobiletablets
+```
+
+
+
+```{r}
+P_mobiletablets<-aggregate(x=mobiletablets$total,by=list(mobiletablets$sku), FUN=sum)
+datatable(P_mobiletablets[order(P_mobiletablets$x,decreasing = TRUE),])
+```
+
+```{r}
+P1_mobiletablets<- usaStore%>%group_by(total)%>%filter(sku %in% c("MATSAM59DB757FB47A2"))
+
+P1_mobiletablets
+```
+
+
+
+
+
+
+```{r}
+Appliances<- usaStore%>%group_by(total)%>%filter(category %in% c("Appliances"))
+
+Appliances
+```
+
+
+
+```{r}
+Entertainment<- usaStore%>%group_by(total)%>%filter(category %in% c("Entertainment"))
+
+Entertainment
+```
+
+
+
+
+
+### Correlación
+
+
+
+```{r}
+
+UsaStoreCo <- usaStore
+UsaStoreCo
+UsaStoreCo <- select(usaStore, "cant_ordened","price","discount_amount","total","age")
+
+
+UsaStoreCo
+str(UsaStoreCo)
+```
+
+
+
+```{r}
+M<-cor(UsaStoreCo)
+head(round(M,2))
+```
+
+
+```{r}
+library(corrplot)
+corrplot(M, method="circle")
+```
+
+
+#Correlación menor a cero: Si la correlación es menor a cero, significa que es negativa, es decir, que las variables se relacionan inversamente. Cuando el valor de alguna variable es alto, el valor de la otra variable es bajo. Mientras más próximo se encuentre a -1, más clara será la covariación extrema.
+
+
+
+
+# Regresiones lineales
+
+
+```{r}
+Usa <- usaStore
+plot(Usa$cant_ordened,Usa$price)
+```
+
+```{r}
+modelo <- lm(Usa$cant_ordened ~ Usa$price, data=Usa)
+summary(modelo)
+```
+
+Al analizar este análisis los parámetros de la ecuación de la recta de mínimos cuadrados que relaciona las ventas con la ganancia, se obtiene la recta
+
+Y=  1.45718*X +950.24669
+
+
+
+Que la recta se ajuste a los datos no significa que el modelo sea correcto, depende del uso que queramos darle. 
+
+Si sólo pretendemos hallar la relación entre dos variables, con calcular la recta de mínimos cuadrados es suficiente.
+
+Si queremos verificar que tena una buena relación lineal, con el fin de inferir/ predecir con la recta de regresión debemos comprobar que se verefican unas reglas ya establecidas y acepadas que aseguran que nuestro modelo es bueno, para su verificación realizaremos los seiguientes análisis.
+
+
+### Análisis de correlación
+
+Correlación: Mide el grado de relación lineal, calculamos la matriz de coeficientes de correlación:
+
+
+```{r}
+cor(Usa$cant_ordened,Usa$price)
+```
+
+Esta correlación es la forma abreviada del coeficiente de correlación de Pearson, la fórmula de utilización original sería:
+
+```{r}
+cor.test(Usa$cant_ordened, Usa$price, method = "pearson")
+```
+ Se puede afirmar que la correlación es fuerte debido a que tiene un p-valor menor que 0.05 concretamente 2.2e-16
+
+
+
+### Análisis de los residuos
+
+
+
+Normalidad: Los errores deben seguir una distribución normal
+
+
+```{r}
+residuos <- rstandard(modelo) #Residuos estándares del modelo ajustado (Completo)
+par(mfrow=c(1,3)) #Divide la ventana en una fila y tres columnas
+hist(residuos) #Histograma de los resiudos estandarizados
+boxplot(residuos) #Diagrama de cajas de los residuos estandarizados
+
+qqnorm(residuos) #Gráfico de cuantiles de los residuos estandarizados
+
+qqline(residuos)
+par(mfrow=c(1,1)) #Devuelve la pantalla a su estado original
+
+```
+
+
+### Varianza constante: 
+La varianza de los errores es constante
+
+```{r}
+plot(fitted.values(modelo), rstandard(modelo), xlab= "Valores ajustados", ylab= "Residuos estandarizados") # gráfico 2D de los valores ajustados vs. los residuos estandarizados 
+abline(h=0) # dibuja la recta en cero 
+
+```
+
+Valores atípicos: La independencia de los errores 
+
+
+```{r}
+plot(Usa$price,rstandard(modelo),xlab="Ventas",ylab="Residuos estandarizados") 
+```
+
+### Visualización de la regresión
+
+```{r}
+plot(Usa$total, Usa$cant_ordened, xlab = "Ganancias",ylab= "ventas")
+abline(modelo)
+```
+
+
+
+```{r}
+plot(Usa$cant_ordened, Usa$total, xlab = "can_ordened",ylab= "Total de ventas")
+abline(modelo)
+```
+
+
+
+### Análisis de regresión logística en R
+
+
+Para realizar este analisis necesitamos estos requisitos: 
+
+Variable dependiente: no métrica (dicotómica)
+
+Variables independientes: métricas y no métricas
+
+Según la data que se tiene no contamos con variable dicotomicas 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
